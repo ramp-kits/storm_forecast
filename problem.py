@@ -1,26 +1,31 @@
-
-import rampwf
+import copy
+import math
+import numpy as np
+import pandas as pd
 from sklearn.model_selection import GroupKFold
 from sklearn.utils import shuffle
-import pandas as pd
+
+from rampwf.score_types import RMSE
+from rampwf.score_types import BaseScoreType
+from rampwf.prediction_types import make_regression
+from rampwf.workflows.regressor import Regressor
+from rampwf.utils.importing import import_file
+
 pd.options.mode.chained_assignment = None
-import numpy as np
-import math
 
 problem_title = 'Storm forecast'
-_forecast_h=24
+_forecast_h = 24
 
 # --------------------------------------
 # 1) The object implementing the workflow
 # --------------------------------------
-from rampwf.workflows.regressor import Regressor
-from rampwf.utils.importing import import_file
-import copy
+
 
 class StormForecastFeatureExtractor(object):
-    def __init__(self, check_indexs, workflow_element_names=['feature_extractor']):
+    def __init__(self, check_indexs,
+                 workflow_element_names=['feature_extractor']):
         self.element_names = workflow_element_names
-        self.check_indexs=list(check_indexs)
+        self.check_indexs = list(check_indexs)
 
     def train_submission(self, module_path, X_df, y_array, train_is=None):
         if train_is is None:
@@ -33,7 +38,7 @@ class StormForecastFeatureExtractor(object):
 
     def test_submission(self, trained_model, X_df):
         sf_fe = trained_model
-        X_df.index=range(len(X_df))
+        X_df.index = range(len(X_df))
         X_test_array = sf_fe.transform(X_df)
 
         # Check if feature extractor look ahead of time on some storms.
@@ -43,57 +48,67 @@ class StormForecastFeatureExtractor(object):
         # columns X_df['stormid'] and X_df['instant_t']
         # storing the stormid and the time instant of every data point.
 
-        future_indexs=[]
+        future_indexs = []
         for check_index in self.check_indexs:
-            if check_index>len(X_df):
+            if check_index > len(X_df):
                 self.check_indexs.remove(check_index)
                 continue
             curr_stormid = X_df['stormid'][check_index]
-            curr_tstep=X_df['instant_t'][check_index]
-            # get ids of the matrix X_df where are stored the features of the following timesteps of the same stormid
+            curr_tstep = X_df['instant_t'][check_index]
+            # get ids of the matrix X_df where are stored the features of
+            # the following timesteps of the same stormid
             # -should be just after-
-            f_indexs=[]
-            for index in range(check_index+1,len(X_df)):
+            f_indexs = []
+            for index in range(check_index + 1, len(X_df)):
                 if curr_stormid == X_df['stormid'][index]:
-                    if curr_tstep>X_df['instant_t'][index]:
-                        print('test_submission: Something is wrong...the time instant should be larger than current!')
+                    if curr_tstep > X_df['instant_t'][index]:
+                        print('test_submission: Something is wrong...'
+                              'the time instant should be '
+                              'larger than current!')
                     f_indexs.append(index)
                 else:
                     break
-            # verify if check_index not in future_indexs (one check max. per storm)
-            if set(self.check_indexs) & set(f_indexs): # look at intersection
+            # verify if check_index not in future_indexs
+            # (one check max. per storm)
+            if set(self.check_indexs) & set(f_indexs):  # look at intersection
                 self.check_indexs.remove(check_index)
                 continue
             future_indexs.extend(f_indexs)
 
-        # permute data from the future_indexs for every column : it can be applied to any kind of data
+        # permute data from the future_indexs for every column :
+        #  it can be applied to any kind of data
         data_var_names = list(X_df.keys())
         keep_data = {}
         for data_var_name in data_var_names:
-             keep_data[data_var_name] = copy.deepcopy(X_df[data_var_name][future_indexs])
-             X_df.loc[future_indexs, data_var_name] = np.random.permutation(X_df[data_var_name][future_indexs])
+            keep_data[data_var_name] = \
+                copy.deepcopy(X_df[data_var_name][future_indexs])
+            X_df.loc[future_indexs, data_var_name] = \
+                np.random.permutation(X_df[data_var_name][future_indexs])
         # calling transform on changed future
         X_check_array = sf_fe.transform(X_df)
         # set X_df normal again
         for data_var_name in data_var_names:
-            X_df.loc[future_indexs,data_var_name]=keep_data[data_var_name]
+            X_df.loc[future_indexs, data_var_name] = keep_data[data_var_name]
 
         X_neq = np.not_equal(
             X_test_array[self.check_indexs], X_check_array[self.check_indexs])
         x_neq = np.any(X_neq, axis=1)
         x_neq_nonzero = x_neq.nonzero()
-        # The final features should not have changed between the first transform()
+        # The final features should not have changed
+        # between the first transform()
         # and the transform() where the future has been modified.
         # if not, than it means an illegal lookahead has happened.
         if len(x_neq_nonzero[0]) > 0:
-            message = 'The feature extractor looks into the future timesteps of the same storm!'
+            message = 'The feature extractor looks into the future ' \
+                      'timesteps of the same storm!'
             raise AssertionError(message)
 
         return X_test_array
 
 
 class StormForecastFeatureExtractorRegressor(object):
-    def __init__(self,check_indexs, workflow_element_names=['feature_extractor', 'regressor']):
+    def __init__(self, check_indexs,
+                 workflow_element_names=['feature_extractor', 'regressor']):
         self.element_names = workflow_element_names
         self.sf_feature_extractor_workflow = StormForecastFeatureExtractor(
             check_indexs, [self.element_names[0]])
@@ -117,13 +132,15 @@ class StormForecastFeatureExtractorRegressor(object):
         y_pred = self.regressor_workflow.test_submission(reg, X_test_array)
         return y_pred
 
-workflow = StormForecastFeatureExtractorRegressor(check_indexs=np.random.randint(0,500,10))
+
+workflow = StormForecastFeatureExtractorRegressor(
+    check_indexs=np.random.randint(0, 500, 10))
 
 # -------------------------------------------------------------------
 # 2) The prediction type (class) to create wrapper objects for `y_pred`,
 # -------------------------------------------------------------------
 
-Predictions = rampwf.prediction_types.make_regression()
+Predictions = make_regression()
 
 
 # ----------------------------------------------------------------
@@ -132,10 +149,12 @@ Predictions = rampwf.prediction_types.make_regression()
 
 # The 'hurricanes' metrics are only taking into account the time instants
 # where the storm is a 'hurricane' and not a depression.
-# the difference is the maximal sustained windspeed, that is >64 knots for hurricanes.
-#  This metric is useful because meteorologists compare their predictions on only
+# the difference is the maximal sustained windspeed,
+# that is >64 knots for hurricanes.
+#  This metric is useful because meteorologists
+# compare their predictions on only
 # 'hurricane' instants. See https://www.nhc.noaa.gov/verification/verify2.shtml
-class MAE(rampwf.score_types.BaseScoreType):
+class MAE(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
     maximum = float('inf')
@@ -147,7 +166,8 @@ class MAE(rampwf.score_types.BaseScoreType):
     def __call__(self, y_true, y_pred):
         return np.average(np.abs(y_pred - y_true))
 
-class MAE_hurricanes(rampwf.score_types.BaseScoreType):
+
+class MAE_hurricanes(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
     maximum = float('inf')
@@ -157,15 +177,17 @@ class MAE_hurricanes(rampwf.score_types.BaseScoreType):
         self.precision = precision
 
     def __call__(self, y_true, y_pred):
-        y_true=np.transpose(y_true)
-        # the definition of the 1rst hurricane category is a max. wind > 64 knots.
-        flag_ishurricane=y_true > 64
+        y_true = np.transpose(y_true)
+        # the definition of the 1rst hurricane category is
+        # a max. wind > 64 knots.
+        flag_ishurricane = y_true > 64
 
-        y_true_hurr=y_true[flag_ishurricane]
-        y_pred_hurr=y_pred[flag_ishurricane]
+        y_true_hurr = y_true[flag_ishurricane]
+        y_pred_hurr = y_pred[flag_ishurricane]
         return np.average(np.abs(y_pred_hurr - y_true_hurr))
 
-class RelativeMAE_hurricanes(rampwf.score_types.BaseScoreType):
+
+class RelativeMAE_hurricanes(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
     maximum = float('inf')
@@ -175,29 +197,31 @@ class RelativeMAE_hurricanes(rampwf.score_types.BaseScoreType):
         self.precision = precision
 
     def __call__(self, y_true, y_pred):
-        # the definition of the 1rst hurricane category is a max. wind > 64 knots.
-        flag_ishurricane=y_true > 64
-        y_true_hurr=y_true[flag_ishurricane]
-        y_pred_hurr=y_pred[flag_ishurricane]
+        # the definition of the 1rst hurricane category is
+        # a max. wind > 64 knots.
+        flag_ishurricane = y_true > 64
+        y_true_hurr = y_true[flag_ishurricane]
+        y_pred_hurr = y_pred[flag_ishurricane]
         return np.average(np.abs(y_pred_hurr - y_true_hurr) / y_true_hurr)
 
-from rampwf.score_types import RMSE
+
 score_types = [
-RMSE(name='rmse', precision=3),
-MAE(name='mae', precision=3),
-MAE_hurricanes(name='mae_hurr', precision=3),
-RelativeMAE_hurricanes(name='rel_mae_hurr', precision=3),
-]
+    RMSE(name='rmse', precision=3),
+    MAE(name='mae', precision=3),
+    MAE_hurricanes(name='mae_hurr', precision=3),
+    RelativeMAE_hurricanes(name='rel_mae_hurr', precision=3)]
+
 
 # --------------------------------------------------------------------------
 # 4) The cross-validation scheme in the form of a function that returns a list
 #    of array indices for the training AND testing data
 # --------------------------------------------------------------------------
 def get_cv(X, y):
-    group=np.array(X['stormid'])
-    X, y, group= shuffle(X, y, group, random_state=3)
-    gkf = GroupKFold(n_splits=5).split(X, y,group)
+    group = np.array(X['stormid'])
+    X, y, group = shuffle(X, y, group, random_state=3)
+    gkf = GroupKFold(n_splits=5).split(X, y, group)
     return gkf
+
 
 # ------------------------------------------------------------
 # 5) The method that can read both the training and testing data
@@ -229,29 +253,32 @@ def get_cv(X, y):
 
 def _read_data(path, dataset):
     try:
-        Data = pd.read_csv(path+'/data/'+dataset+'.csv')
+        Data = pd.read_csv(path + '/data/' + dataset + '.csv')
     except IOError:
-        raise IOError("'data/{0}.csv' is not found. Ensure you ran 'python download_data.py' to "
+        raise IOError("'data/{0}.csv' is not found. "
+                      "Ensure you ran 'python download_data.py' to "
                       "obtain the train/test data".format(dataset))
 
     y = np.empty((len(Data)))
     y[:] = np.nan
-    windowt=_forecast_h/6 # only one instant every 6 h, so the forecast window is 'windowt' timesteps ahead
+    # only one instant every 6 h,
+    # so the forecast window is 'windowt' timesteps ahead
+    windowt = _forecast_h / 6
     for i in range(len(Data)):
         if i + windowt >= len(Data):
             continue
-        if Data['instant_t'][i+windowt] - Data['instant_t'][i] == windowt:
+        if Data['instant_t'][i + windowt] - Data['instant_t'][i] == windowt:
             y[i] = Data['windspeed'][i + windowt]
-    X=Data
-    i_toerase=[]
-    for i,yi in enumerate(y):
+    X = Data
+    i_toerase = []
+    for i, yi in enumerate(y):
         if math.isnan(yi):
             i_toerase.append(i)
-    X=X.drop(X.index[i_toerase])
+    X = X.drop(X.index[i_toerase])
     X.index = range(len(X))
-    y=np.delete(y, i_toerase, axis=0)
-    #y[y == 0] = 10
-    return X,y
+    y = np.delete(y, i_toerase, axis=0)
+    # y[y == 0] = 10
+    return X, y
 
 
 def get_test_data(path='.'):

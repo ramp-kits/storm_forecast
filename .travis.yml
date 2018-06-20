@@ -12,12 +12,15 @@ before_install:
 install:
   - conda create -n testenv --yes pip python=$PYTHON_VERSION
   - source activate testenv
+  - pip install git+https://github.com/paris-saclay-cds/ramp-workflow.git
   - pip install -r requirements.txt
+  - python download_data.py
 script:
   - flake8 --ignore F812 *.py submissions/*/*.py
-  - ramp_test_submission --submission starting_kit --quick-test
+  - ramp_test_submission --submission starting_kit
   # Add testing here for all additional submissions
   # but make sure to use the --quick-test option
   # to avoid everlasting feedback time.
+  - ramp_test_submission --submission starting_kit_pressure_map
 notifications:
   email: true
