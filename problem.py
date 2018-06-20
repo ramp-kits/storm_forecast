@@ -105,7 +105,7 @@ class StormForecastFeatureExtractor(object):
 
 class StormForecastFeatureExtractorRegressor(object):
     def __init__(self, check_indexs,
-                 workflow_element_names = ['feature_extractor', 'regressor']):
+                 workflow_element_names=['feature_extractor', 'regressor']):
         self.element_names = workflow_element_names
         self.sf_feature_extractor_workflow = StormForecastFeatureExtractor(
             check_indexs, [self.element_names[0]])
