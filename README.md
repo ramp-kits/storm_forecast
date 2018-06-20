@@ -20,7 +20,7 @@ The goal is to predict the hurrican evolution (24h forecast) using collected dat
   - with [conda](https://conda.io/miniconda.html)
   ```
   conda install -y -c conda conda-env     # First install conda-env
-  conda env create                        # Use environment.yml to create the 'astrophd_tutorial' env
+  conda env create                        # Use environment.yml to create the 'storm_forecast' env
   source activate storm_forecast       # Activates the virtual env
   ```
   - without `conda` (best to use a **virtual environment**)
