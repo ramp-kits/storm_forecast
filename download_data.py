@@ -9,7 +9,7 @@ except ImportError:
 
 URLBASE = 'https://storage.ramp.studio/storm_forecast/{}'
 DATA = [
-    'data_train.csv', 'data_test.csv']
+    'train.csv', 'test.csv']
 
 def main(output_dir='data'):
     filenames = DATA
