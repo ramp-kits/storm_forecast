@@ -1,0 +1,12 @@
+name: storm-forecast
+channels:
+  - conda-forge
+dependencies:
+  - scipy
+  - numpy
+  - pandas
+  - jupyter
+  - matplotlib
+  - scikit-learn
+  - pip:
+- git+https://github.com/paris-saclay-cds/ramp-workflow
