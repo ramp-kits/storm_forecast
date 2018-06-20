@@ -209,8 +209,7 @@ score_types = [
     RMSE(name='rmse', precision=3),
     MAE(name='mae', precision=3),
     MAE_hurricanes(name='mae_hurr', precision=3),
-    RelativeMAE_hurricanes(name='rel_mae_hurr', precision=3)
-    ]
+    RelativeMAE_hurricanes(name='rel_mae_hurr', precision=3)]
 
 
 # --------------------------------------------------------------------------
