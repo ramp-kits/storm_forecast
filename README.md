@@ -2,7 +2,7 @@ Ramp kit storm forecast
 =======================
 
 
-[![Build Status](https://travis-ci.org/sophiegif/ramp_kit_storm_forecast.svg?branch=master)][travis]
+[![Build Status](https://travis-ci.org/ramp-kits/storm_forecast.svg?branch=master)][travis]
 
 _Authors: Sophie Giffard-Roisin_
 
@@ -37,7 +37,7 @@ The goal is to predict the hurrican evolution (24h forecast) using collected dat
 
 ## New submissions
 
-1. create a new submission "<new_sub>" by building on the existing ones
+1. create a new submission `<new_sub>` by building on the existing ones
   ```
   cp -r submissions/starting_kit submissions/<new_sub>
   ```
@@ -61,7 +61,7 @@ BSD license : see [LICENSE file](LICENSE)
 This package was created with [Cookiecutter][cookie] and the [`ramp-kits/cookiecutter-ramp-kit`][kit] project template
 issued by the [Paris-Saclay Center for Data Science][cds].
 
-[travis]: https://travis-ci.org/sophiegif/ramp_kit_storm_forecast
+[travis]: https://travis-ci.org/ramp-kits/storm_forecast
 [ramp]: https://ramp.studio/events/storm_forecast
 [cookie]: https://github.com/audreyr/cookiecutter
 [kit]: https://github.com/ramp-kits/cookiecutter-ramp-kit
