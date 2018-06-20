@@ -1,13 +1,16 @@
-import pandas as pd
-import numpy as np
-import math
 import copy
-import rampwf
-from rampwf.workflows.regressor import Regressor
-from rampwf.utils.importing import import_file
-from rampwf.score_types import RMSE
+import math
+import numpy as np
+import pandas as pd
 from sklearn.model_selection import GroupKFold
 from sklearn.utils import shuffle
+
+from rampwf.score_types import RMSE
+from rampwf.score_types import BaseScoreType
+from rampwf.prediction_types import make_regression
+from rampwf.workflows.regressor import Regressor
+from rampwf.utils.importing import import_file
+
 pd.options.mode.chained_assignment = None
 
 problem_title = 'Storm forecast'
@@ -137,7 +140,7 @@ workflow = StormForecastFeatureExtractorRegressor(
 # 2) The prediction type (class) to create wrapper objects for `y_pred`,
 # -------------------------------------------------------------------
 
-Predictions = rampwf.prediction_types.make_regression()
+Predictions = make_regression()
 
 
 # ----------------------------------------------------------------
@@ -151,7 +154,7 @@ Predictions = rampwf.prediction_types.make_regression()
 #  This metric is useful because meteorologists
 # compare their predictions on only
 # 'hurricane' instants. See https://www.nhc.noaa.gov/verification/verify2.shtml
-class MAE(rampwf.score_types.BaseScoreType):
+class MAE(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
     maximum = float('inf')
@@ -164,7 +167,7 @@ class MAE(rampwf.score_types.BaseScoreType):
         return np.average(np.abs(y_pred - y_true))
 
 
-class MAE_hurricanes(rampwf.score_types.BaseScoreType):
+class MAE_hurricanes(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
     maximum = float('inf')
@@ -184,7 +187,7 @@ class MAE_hurricanes(rampwf.score_types.BaseScoreType):
         return np.average(np.abs(y_pred_hurr - y_true_hurr))
 
 
-class RelativeMAE_hurricanes(rampwf.score_types.BaseScoreType):
+class RelativeMAE_hurricanes(BaseScoreType):
     is_lower_the_better = True
     minimum = 0.0
     maximum = float('inf')
@@ -202,10 +205,12 @@ class RelativeMAE_hurricanes(rampwf.score_types.BaseScoreType):
         return np.average(np.abs(y_pred_hurr - y_true_hurr) / y_true_hurr)
 
 
-score_types = [RMSE(name='rmse', precision=3),
-               MAE(name='mae', precision=3),
-               MAE_hurricanes(name='mae_hurr', precision=3),
-               RelativeMAE_hurricanes(name='rel_mae_hurr', precision=3)]
+score_types = [
+    RMSE(name='rmse', precision=3),
+    MAE(name='mae', precision=3),
+    MAE_hurricanes(name='mae_hurr', precision=3),
+    RelativeMAE_hurricanes(name='rel_mae_hurr', precision=3)
+    ]
 
 
 # --------------------------------------------------------------------------
