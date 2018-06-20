@@ -202,12 +202,10 @@ class RelativeMAE_hurricanes(rampwf.score_types.BaseScoreType):
         return np.average(np.abs(y_pred_hurr - y_true_hurr) / y_true_hurr)
 
 
-score_types = [
-                RMSE(name='rmse', precision=3),
-                MAE(name='mae', precision=3),
-                MAE_hurricanes(name='mae_hurr', precision=3),
-                RelativeMAE_hurricanes(name='rel_mae_hurr', precision=3)
-              ]
+score_types = [RMSE(name='rmse', precision=3),
+               MAE(name='mae', precision=3),
+               MAE_hurricanes(name='mae_hurr', precision=3),
+               RelativeMAE_hurricanes(name='rel_mae_hurr', precision=3)]
 
 
 # --------------------------------------------------------------------------
