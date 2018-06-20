@@ -3,6 +3,7 @@ from sklearn.preprocessing import Imputer
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator
 
+
 class Regressor(BaseEstimator):
     def __init__(self):
         self.reg = Pipeline([

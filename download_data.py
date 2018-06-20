@@ -11,6 +11,7 @@ URLBASE = 'https://storage.ramp.studio/storm_forecast/{}'
 DATA = [
     'train.csv', 'test.csv']
 
+
 def main(output_dir='data'):
     filenames = DATA
     urls = [URLBASE.format(filename) for filename in filenames]
