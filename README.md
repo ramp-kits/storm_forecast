@@ -12,8 +12,8 @@ The goal is to predict the hurrican evolution (24h forecast) using collected dat
 
 1. clone this repository
   ```
-  git clone https://github.com/sophiegif/ramp_kit_storm_forecast
-  cd ramp_kit_storm_forecast
+  git clone https://github.com/ramp-kits/storm_forecast.git
+  cd storm_forecast
   ```
 
 2. install the dependancies
@@ -21,7 +21,7 @@ The goal is to predict the hurrican evolution (24h forecast) using collected dat
   ```
   conda install -y -c conda conda-env     # First install conda-env
   conda env create                        # Use environment.yml to create the 'astrophd_tutorial' env
-  source activate ramp_kit_storm_forecast       # Activates the virtual env
+  source activate storm_forecast       # Activates the virtual env
   ```
   - without `conda` (best to use a **virtual environment**)
   ```
@@ -33,7 +33,7 @@ The goal is to predict the hurrican evolution (24h forecast) using collected dat
   python download_data.py        # quick-test data for testing ~270Mb
   ```
 
-4. get started with the ramp_kit_storm_forecast_starting_kit.ipynb
+4. get started with the storm_forecast_starting_kit.ipynb
 
 ## New submissions
 
@@ -62,7 +62,7 @@ This package was created with [Cookiecutter][cookie] and the [`ramp-kits/cookiec
 issued by the [Paris-Saclay Center for Data Science][cds].
 
 [travis]: https://travis-ci.org/sophiegif/ramp_kit_storm_forecast
-[ramp]: https://ramp.studio/events/ramp_kit_storm_forecast
+[ramp]: https://ramp.studio/events/storm_forecast
 [cookie]: https://github.com/audreyr/cookiecutter
 [kit]: https://github.com/ramp-kits/cookiecutter-ramp-kit
 [cds]: https://www.datascience-paris-saclay.fr/
