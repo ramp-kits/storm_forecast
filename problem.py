@@ -13,7 +13,7 @@ from rampwf.utils.importing import import_file
 
 pd.options.mode.chained_assignment = None
 
-problem_title = 'Storm intensity forecast'
+problem_title = 'Tropical storm intensity forecast'
 _forecast_h = 24
 
 # --------------------------------------
@@ -206,9 +206,9 @@ class RelativeMAE_hurricanes(BaseScoreType):
 
 
 score_types = [
-    RMSE(name='rmse', precision=3),
-    MAE(name='mae', precision=3),
-    MAE_hurricanes(name='mae_hurr', precision=3),
+    RMSE(name='rmse', precision=1),
+    MAE(name='mae', precision=1),
+    MAE_hurricanes(name='mae_hurr', precision=1),
     RelativeMAE_hurricanes(name='rel_mae_hurr', precision=3)]
 
 
