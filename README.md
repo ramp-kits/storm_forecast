@@ -4,7 +4,7 @@ Ramp kit storm forecast
 
 [![Build Status](https://travis-ci.org/ramp-kits/storm_forecast.svg?branch=master)][travis]
 
-_Authors: Sophie Giffard-Roisin_
+_Authors: Sophie Giffard-Roisin, Alexandre Boucaud, Mo Yang, Balazs Kegl, Claire Monteleoni (AppStat-CDS)_
 
 The goal is to predict the hurrican evolution (24h forecast) using collected data from all past hurricanes (since 1979)
 
