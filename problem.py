@@ -13,7 +13,7 @@ from rampwf.utils.importing import import_file
 
 pd.options.mode.chained_assignment = None
 
-problem_title = 'Storm forecast'
+problem_title = 'Storm intensity forecast'
 _forecast_h = 24
 
 # --------------------------------------
