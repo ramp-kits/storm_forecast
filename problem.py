@@ -23,7 +23,7 @@ np.random.seed(_RANDOM_SEED)
 
 
 class StormForecastFeatureExtractor(object):
-    def __init__(self,workflow_element_names=['feature_extractor']):
+    def __init__(self, workflow_element_names=['feature_extractor']):
         self.element_names = workflow_element_names
 
     def train_submission(self, module_path, X_df, y_array, train_is=None):
@@ -45,8 +45,8 @@ class StormForecastFeatureExtractorRegressor(object):
     def __init__(self, check_indexs_nb,
                  workflow_element_names=['feature_extractor', 'regressor']):
         self.element_names = workflow_element_names
-        self.sf_feature_extractor_workflow = StormForecastFeatureExtractor(
-             [self.element_names[0]])
+        self.sf_feature_extractor_workflow = \
+            StormForecastFeatureExtractor([self.element_names[0]])
         self.regressor_workflow = Regressor([self.element_names[1]])
         self.check_indexs_nb = check_indexs_nb
 
@@ -114,8 +114,10 @@ class StormForecastFeatureExtractorRegressor(object):
                 np.random.permutation(X_df[data_var_name][future_indexs])
 
         # calling feat.extractor and compute y on changed future
-        X_check_array = self.sf_feature_extractor_workflow.test_submission(fe,X_df)
-        y_check_pred = self.regressor_workflow.test_submission(reg, X_check_array)
+        X_check_array = \
+            self.sf_feature_extractor_workflow.test_submission(fe, X_df)
+        y_check_pred = \
+            self.regressor_workflow.test_submission(reg, X_check_array)
 
         # set X_df normal again
         for data_var_name in data_var_names:
