@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 
 class FeatureExtractor():
@@ -21,7 +20,7 @@ class FeatureExtractor():
 
         # get data from the future of the current storm
         # (to test the error message!)
-        future_winds=[]
+        future_winds = []
         for i in range(len(X_df)):
             if i + 2 >= len(X_df):
                 future_winds.append(X_df['windspeed'][i])
