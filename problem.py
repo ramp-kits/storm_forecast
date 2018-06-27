@@ -2,6 +2,8 @@ import copy
 import math
 import numpy as np
 import pandas as pd
+import random
+from datetime import datetime
 from sklearn.model_selection import GroupKFold
 from sklearn.utils import shuffle
 
@@ -15,17 +17,16 @@ pd.options.mode.chained_assignment = None
 
 problem_title = 'Tropical storm intensity forecast'
 _forecast_h = 24
-
+_RANDOM_SEED = 40
+np.random.seed(_RANDOM_SEED)
 # --------------------------------------
 # 1) The object implementing the workflow
 # --------------------------------------
 
 
 class StormForecastFeatureExtractor(object):
-    def __init__(self, check_indexs,
-                 workflow_element_names=['feature_extractor']):
+    def __init__(self,workflow_element_names=['feature_extractor']):
         self.element_names = workflow_element_names
-        self.check_indexs = list(check_indexs)
 
     def train_submission(self, module_path, X_df, y_array, train_is=None):
         if train_is is None:
@@ -38,20 +39,49 @@ class StormForecastFeatureExtractor(object):
 
     def test_submission(self, trained_model, X_df):
         sf_fe = trained_model
-        X_df.index = range(len(X_df))
         X_test_array = sf_fe.transform(X_df)
+        return X_test_array
 
-        # Check if feature extractor look ahead of time on some storms.
+
+class StormForecastFeatureExtractorRegressor(object):
+    def __init__(self, check_indexs_nb,
+                 workflow_element_names=['feature_extractor', 'regressor']):
+        self.element_names = workflow_element_names
+        self.sf_feature_extractor_workflow = StormForecastFeatureExtractor(
+             [self.element_names[0]])
+        self.regressor_workflow = Regressor([self.element_names[1]])
+        self.check_indexs_nb = check_indexs_nb
+
+    def train_submission(self, module_path, X_df, y_array, train_is=None):
+        if train_is is None:
+            train_is = slice(None, None, None)
+        sf_fe = self.sf_feature_extractor_workflow.train_submission(
+            module_path, X_df, y_array, train_is)
+        X_train_array = self.sf_feature_extractor_workflow.test_submission(
+            sf_fe, X_df.iloc[train_is])
+        reg = self.regressor_workflow.train_submission(
+            module_path, X_train_array, y_array[train_is])
+        return sf_fe, reg
+
+    def test_submission(self, trained_model, X_df):
+        fe, reg = trained_model
+        X_df.index = range(len(X_df))
+        X_test_array = self.sf_feature_extractor_workflow.test_submission(
+            fe, X_df)
+        y_pred = self.regressor_workflow.test_submission(reg, X_test_array)
+
+        # Check if feat. extractor/regressor look ahead of time on some storms.
         # For that, use the check_indexs elements (consitisting of one time
         # of one storm) and look if it uses information from a future timestep
         # of the same storm. The pandas feature matrix X_df has 2 important
         # columns X_df['stormid'] and X_df['instant_t']
         # storing the stormid and the time instant of every data point.
-
+        check_indexs = list(np.random.randint(0, len(X_df),
+                                              self.check_indexs_nb))
         future_indexs = []
-        for check_index in self.check_indexs:
+        for check_index in check_indexs:
             if check_index > len(X_df):
-                self.check_indexs.remove(check_index)
+                check_indexs.remove(check_index)
                 continue
             curr_stormid = X_df['stormid'][check_index]
             curr_tstep = X_df['instant_t'][check_index]
@@ -70,13 +100,13 @@ class StormForecastFeatureExtractor(object):
                     break
             # verify if check_index not in future_indexs
             # (one check max. per storm)
-            if set(self.check_indexs) & set(f_indexs):  # look at intersection
-                self.check_indexs.remove(check_index)
+            if set(check_indexs) & set(f_indexs):  # look at intersection
+                check_indexs.remove(check_index)
                 continue
             future_indexs.extend(f_indexs)
 
         # permute data from the future_indexs for every column :
-        #  it can be applied to any kind of data
+        # permutation can be applied to any kind of data (even labels)
         data_var_names = list(X_df.keys())
         keep_data = {}
         for data_var_name in data_var_names:
@@ -84,57 +114,32 @@ class StormForecastFeatureExtractor(object):
                 copy.deepcopy(X_df[data_var_name][future_indexs])
             X_df.loc[future_indexs, data_var_name] = \
                 np.random.permutation(X_df[data_var_name][future_indexs])
-        # calling transform on changed future
-        X_check_array = sf_fe.transform(X_df)
+
+        # calling feat.extractor and compute y on changed future
+        X_check_array = self.sf_feature_extractor_workflow.test_submission(fe,X_df)
+        y_check_pred = self.regressor_workflow.test_submission(reg, X_check_array)
+
         # set X_df normal again
         for data_var_name in data_var_names:
             X_df.loc[future_indexs, data_var_name] = keep_data[data_var_name]
 
-        X_neq = np.not_equal(
-            X_test_array[self.check_indexs], X_check_array[self.check_indexs])
-        x_neq = np.any(X_neq, axis=1)
-        x_neq_nonzero = x_neq.nonzero()
-        # The final features should not have changed
-        # between the first transform()
-        # and the transform() where the future has been modified.
+        y_neq = np.not_equal(
+            y_pred[check_indexs], y_check_pred[check_indexs])
+        y_neq_nonzero = y_neq.nonzero()
+        # The final results should not have changed
+        # between the normal prediction
+        # and the prediction where the future has been modified.
         # if not, than it means an illegal lookahead has happened.
-        if len(x_neq_nonzero[0]) > 0:
-            message = 'The feature extractor looks into the future ' \
-                      'timesteps of the same storm!'
+        if len(y_neq_nonzero[0]) > 0:
+            message = 'The feature extractor or the regressor looks ' \
+                      'into the future timesteps of the same storm!'
             raise AssertionError(message)
 
-        return X_test_array
-
-
-class StormForecastFeatureExtractorRegressor(object):
-    def __init__(self, check_indexs,
-                 workflow_element_names=['feature_extractor', 'regressor']):
-        self.element_names = workflow_element_names
-        self.sf_feature_extractor_workflow = StormForecastFeatureExtractor(
-            check_indexs, [self.element_names[0]])
-        self.regressor_workflow = Regressor([self.element_names[1]])
-
-    def train_submission(self, module_path, X_df, y_array, train_is=None):
-        if train_is is None:
-            train_is = slice(None, None, None)
-        sf_fe = self.sf_feature_extractor_workflow.train_submission(
-            module_path, X_df, y_array, train_is)
-        X_train_array = self.sf_feature_extractor_workflow.test_submission(
-            sf_fe, X_df.iloc[train_is])
-        reg = self.regressor_workflow.train_submission(
-            module_path, X_train_array, y_array[train_is])
-        return sf_fe, reg
-
-    def test_submission(self, trained_model, X_df):
-        fe, reg = trained_model
-        X_test_array = self.sf_feature_extractor_workflow.test_submission(
-            fe, X_df)
-        y_pred = self.regressor_workflow.test_submission(reg, X_test_array)
         return y_pred
 
 
 workflow = StormForecastFeatureExtractorRegressor(
-    check_indexs=np.random.randint(0, 500, 10))
+    check_indexs_nb=100)
 
 # -------------------------------------------------------------------
 # 2) The prediction type (class) to create wrapper objects for `y_pred`,
