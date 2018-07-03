@@ -1,6 +1,7 @@
 name: root
 channels:
   - conda-forge
+  - pytorch
 dependencies:
   - flake8
   - scipy
@@ -10,5 +11,7 @@ dependencies:
   - matplotlib
   - scikit-learn
   - scikit-image
+  - pytorch-cpu
+  - torchvision-cpu
   - pip:
     - https://api.github.com/repos/paris-saclay-cds/ramp-workflow/zipball/master
