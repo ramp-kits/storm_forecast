@@ -9,5 +9,6 @@ dependencies:
   - jupyter
   - matplotlib
   - scikit-learn
+  - scikit-image
   - pip:
     - https://api.github.com/repos/paris-saclay-cds/ramp-workflow/zipball/master
