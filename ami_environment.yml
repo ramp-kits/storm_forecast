@@ -15,3 +15,5 @@ dependencies:
   - torchvision-cpu
   - pip:
     - https://api.github.com/repos/paris-saclay-cds/ramp-workflow/zipball/master
+    - tensorflow
+    - keras
