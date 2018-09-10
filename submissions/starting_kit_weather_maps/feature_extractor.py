@@ -21,9 +21,11 @@ class FeatureExtractor():
         X_df_new = X_df_new.fillna(-1)
         XX = X_df_new.values
 
-        # reconstruct also the pressure image data
-        # (one 2D image /storm instant):
-        grid_l = 25  # length of the image is 25 x 25
+        # reconstruct also some image data
+        # (7 2D image per storm instant: z, u, v, sst, slp, hum, vo700 ):
+        grid_l = 11  # size of the image is 11 x 11
+
+        # first, altitude z image (example)
         z_image = np.zeros([grid_l, grid_l, len(X_df)])
         for i in range(grid_l):
             for j in range(grid_l):
@@ -35,10 +37,23 @@ class FeatureExtractor():
         # over the 25x25 deg grid centered on the storm
         z_mean = np.mean(z_image, axis=(1, 2))
         # Simple ex.2 :
-        # get the center data of the 25x25 deg grid (where is the storm)
+        # get the center data of the grid (where is the storm)
         z_center = z_image[:, int(grid_l / 2), int(grid_l / 2)]
 
+        # add columns to the feature matrix
         XX = np.insert(XX, len(XX[0]), z_mean, axis=1)
         XX = np.insert(XX, len(XX[0]), z_center, axis=1)
+
+        # Same with sea surface temperature (sst) 11x11 degree
+        sst_image = np.zeros([grid_l, grid_l, len(X_df)])
+        for i in range(grid_l):
+            for j in range(grid_l):
+                sst_image[i, j, :] = \
+                    X_df['sst_' + str(i) + '_' + str(j)].values
+        sst_image = np.transpose(sst_image, [2, 0, 1])
+        sst_mean = np.mean(sst_image, axis=(1, 2))
+        sst_center = sst_image[:, int(grid_l / 2), int(grid_l / 2)]
+        XX = np.insert(XX, len(XX[0]), sst_mean, axis=1)
+        XX = np.insert(XX, len(XX[0]), sst_center, axis=1)
 
         return XX
