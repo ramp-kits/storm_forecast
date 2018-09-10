@@ -4,3 +4,6 @@ scipy
 pandas>=0.21
 jupyter
 scikit-learn>=0.19
+scikit-image
+pytorch-cpu
+torchvision-cpu

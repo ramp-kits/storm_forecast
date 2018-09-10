@@ -1,6 +1,7 @@
 name: storm_forecast
 channels:
   - conda-forge
+  - pytorch
 dependencies:
   - flake8
   - scipy
@@ -9,5 +10,8 @@ dependencies:
   - jupyter
   - matplotlib
   - scikit-learn>=0.19
+  - scikit-image
+  - pytorch-cpu
+  - torchvision-cpu
   - pip:
     - https://api.github.com/repos/paris-saclay-cds/ramp-workflow/zipball/master
