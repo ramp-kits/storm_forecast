@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 class FeatureExtractor():
     def __init__(self):
         pass

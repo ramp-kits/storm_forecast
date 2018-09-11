@@ -114,10 +114,10 @@ class StormForecastFeatureExtractorRegressor(object):
             if data_var_name == 'stormid':
                 X_df.loc[future_indexs, data_var_name] = \
                     X_df[data_var_name][future_indexs] + \
-                    str(random.randint(0, 10)) # change stormid
+                    str(random.randint(0, 10))  # change stormid
             else:
                 X_df.loc[future_indexs, data_var_name] = \
-                	np.random.permutation(X_df[data_var_name][future_indexs])
+                    np.random.permutation(X_df[data_var_name][future_indexs])
 
         # calling feat.extractor and compute y on changed future
         X_check_array = \
