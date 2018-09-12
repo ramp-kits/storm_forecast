@@ -4,4 +4,3 @@ scipy
 pandas>=0.21
 jupyter
 scikit-learn>=0.19
-
