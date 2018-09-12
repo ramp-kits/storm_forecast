@@ -1,12 +1,12 @@
 Ramp kit storm forecast
-=======================
+=================================
 
 
 [![Build Status](https://travis-ci.org/ramp-kits/storm_forecast.svg?branch=master)][travis]
 
 _Authors: Sophie Giffard-Roisin, Alexandre Boucaud, Mo Yang, Balazs Kegl, Claire Monteleoni (AppStat-CDS)_
 
-The goal is to predict the hurrican evolution (24h forecast) using collected data from all past hurricanes (since 1979)
+The goal is to predict the hurricane evolution (24h forecast) using collected data from all past hurricanes (since 1979). New version.
 
 ## Set up
 
@@ -30,7 +30,7 @@ The goal is to predict the hurrican evolution (24h forecast) using collected dat
 
 3. download the data
   ```
-  python download_data.py        # quick-test data for testing ~270Mb
+  python download_data.py        # quick-test data for testing ~200Mb
   ```
 
 4. get started with the storm_forecast_starting_kit.ipynb

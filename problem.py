@@ -2,6 +2,7 @@ import copy
 import math
 import numpy as np
 import pandas as pd
+import random
 from sklearn.model_selection import GroupKFold
 from sklearn.utils import shuffle
 
@@ -13,7 +14,7 @@ from rampwf.utils.importing import import_file
 
 pd.options.mode.chained_assignment = None
 
-problem_title = 'Tropical storm intensity forecast'
+problem_title = 'Storm intensity forecast'
 _forecast_h = 24
 _RANDOM_SEED = 40
 np.random.seed(_RANDOM_SEED)
@@ -104,14 +105,19 @@ class StormForecastFeatureExtractorRegressor(object):
             future_indexs.extend(f_indexs)
 
         # permute data from the future_indexs for every column :
-        # permutation can be applied to any kind of data (even labels)
+        # permutation can be applied to any kind of data
         data_var_names = list(X_df.keys())
         keep_data = {}
         for data_var_name in data_var_names:
             keep_data[data_var_name] = \
                 copy.deepcopy(X_df[data_var_name][future_indexs])
-            X_df.loc[future_indexs, data_var_name] = \
-                np.random.permutation(X_df[data_var_name][future_indexs])
+            if data_var_name == 'stormid':
+                X_df.loc[future_indexs, data_var_name] = \
+                    X_df[data_var_name][future_indexs] + \
+                    str(random.randint(0, 10))  # change stormid
+            else:
+                X_df.loc[future_indexs, data_var_name] = \
+                    np.random.permutation(X_df[data_var_name][future_indexs])
 
         # calling feat.extractor and compute y on changed future
         X_check_array = \

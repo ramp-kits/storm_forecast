@@ -13,5 +13,7 @@ dependencies:
   - scikit-image
   - pytorch-cpu
   - torchvision-cpu
+  - keras
+  - tensorflow
   - pip:
     - https://api.github.com/repos/paris-saclay-cds/ramp-workflow/zipball/master

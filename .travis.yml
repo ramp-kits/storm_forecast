@@ -21,6 +21,6 @@ script:
   # Add testing here for all additional submissions
   # but make sure to use the --quick-test option
   # to avoid everlasting feedback time.
-  - ramp_test_submission --submission starting_kit_pressure_map
+  - ramp_test_submission --submission starting_kit_weather_maps
 notifications:
   email: true
